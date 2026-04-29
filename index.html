@@ -366,7 +366,7 @@ document.getElementById('eceto').addEventListener('click',function(){
 });
 setInterval(function(){
   var r=rate();
-  if(r>0){grass+=r*.1;total+=r*.1;allTime+=r*.1;}
+  if(r>0){grass+=r;total+=r;allTime+=r;}
   upd();
   if(_activeTab==='farm'){rendA();rendU();}
   else if(_activeTab==='quests'){updQ();}
