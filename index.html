@@ -70,22 +70,23 @@ var sb = supabase.createClient(SB_URL, SB_KEY);
 
 async function cloudSave(wallet) {
   if (!wallet) return;
-  // Get existing all_time_total first
-  var existing = await sb.from('game_saves').select('all_time_total').eq('wallet', wallet.toLowerCase()).single();
-  var prevAllTime = (existing.data && existing.data.all_time_total) ? parseFloat(existing.data.all_time_total) : 0;
-  var newAllTime = Math.max(prevAllTime, Math.floor(total));
-  var state = {
-    wallet: wallet.toLowerCase(),
-    grass: Math.floor(grass), total: Math.floor(total), clicks: clicks,
-    tap: tap, prod: prod, pc: pc, pm: pm,
-    anim: anim, upg: Array.from(upg), qc: Array.from(qc),
-    streak: streak, dc: dc, plog: plog,
-    all_time_total: newAllTime,
-    updated_at: new Date().toISOString()
-  };
-  var res = await sb.from('game_saves').upsert(state, {onConflict: 'wallet'});
-  if (!res.error) toast('Cloud save OK!');
-  else toast('Cloud save error: ' + res.error.message);
+  try {
+    // Track all_time_total in memory - never decreases
+    if (!window._allTimeTotal) window._allTimeTotal = 0;
+    window._allTimeTotal = Math.max(window._allTimeTotal, Math.floor(total));
+    var state = {
+      wallet: wallet.toLowerCase(),
+      grass: Math.floor(grass), total: Math.floor(total), clicks: clicks,
+      tap: tap, prod: prod, pc: pc, pm: pm,
+      anim: anim, upg: Array.from(upg), qc: Array.from(qc),
+      streak: streak, dc: dc, plog: plog,
+      all_time_total: window._allTimeTotal,
+      updated_at: new Date().toISOString()
+    };
+    var res = await sb.from('game_saves').upsert(state, {onConflict: 'wallet'});
+    if (!res.error) toast('Cloud save OK! All-time: ' + fmt(window._allTimeTotal));
+    else toast('Cloud save error: ' + res.error.message);
+  } catch(e) { toast('Cloud save error: ' + e.message); }
 }
 
 async function cloudLoad(wallet) {
@@ -93,6 +94,7 @@ async function cloudLoad(wallet) {
   var res = await sb.from('game_saves').select('*').eq('wallet', wallet.toLowerCase()).single();
   if (res.error || !res.data) { toast('No cloud save found.'); return; }
   var s = res.data;
+  if (s.all_time_total) window._allTimeTotal = parseFloat(s.all_time_total);
   grass = parseFloat(s.grass) || 0;
   total = parseFloat(s.total) || 0;
   clicks = parseInt(s.clicks) || 0;
