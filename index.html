@@ -193,6 +193,7 @@ var anim={};AN.forEach(function(a){anim[a.id]={cnt:0};});
 var upg=new Set(),qc=new Set(),streak=0,dc=false,plog=[];
 function fmt(n){return n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':Math.floor(n)+'';}
 function rate(){return AN.reduce(function(s,a){return s+a.b*(anim[a.id].cnt||0);},0)*prod*pm;}
+var _lastGrass = -1;
 function upd(){
   document.getElementById('sg').textContent=fmt(grass);
   document.getElementById('sr').textContent=rate().toFixed(1);
@@ -200,7 +201,14 @@ function upd(){
   document.getElementById('sm').textContent='x'+pm;
   document.getElementById('cpw').textContent='Tap power: x'+(tap*pm);
   document.getElementById('ppill').textContent='x'+pm;
-  updRank();rendA();rendU();updQ();updP();updateMap();
+  updRank();
+  // Only re-render animals/upgrades when grass changes significantly
+  var grassFloor = Math.floor(grass);
+  if (Math.abs(grassFloor - _lastGrass) > 1 || _lastGrass < 0) {
+    _lastGrass = grassFloor;
+    rendA();rendU();
+  }
+  updQ();updP();updateMap();
 }
 function updRank(){
   var cur=RK[0],nxt=null;
