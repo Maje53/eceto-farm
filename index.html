@@ -245,7 +245,23 @@ function rendU(){
     b.innerHTML='<span class="uico">'+u.i+'</span><div><div class="unm">'+u.n+(bought?' v':'')+'</div><div class="udc">'+u.d+'</div><div class="ucs">'+(bought?'Purchased':fmt(u.c))+'</div></div>';
   });
 }
-function buyA(a,cost){if(Math.floor(grass)<cost){toast('Not enough grass!');return;}grass-=cost;anim[a.id].cnt++;rendA();rendU();upd();toast(a.n+' purchased!');}
+function buyA(a,cost){
+  if(Math.floor(grass)<cost){toast('Not enough grass!');return;}
+  grass-=cost;
+  anim[a.id].cnt++;
+  toast(a.n+' purchased!');
+  // Update just this button immediately without full re-render
+  var btn=document.getElementById('abtn-'+a.id);
+  if(btn){
+    var newCnt=anim[a.id].cnt;
+    var newCost=Math.floor(a.c*Math.pow(1.15,newCnt));
+    var locked=Math.floor(grass)<newCost;
+    btn.className='abtn'+(locked?' lk':'');
+    btn.dataset.cost=newCost;
+    btn.innerHTML='<span class="aico">'+a.i+'</span><div class="acnt">'+newCnt+'</div><div class="anm">'+a.n+'</div><div class="acs">'+fmt(newCost)+'</div>';
+  }
+  upd();
+}
 function buyU(u){if(grass<u.c){toast('Not enough grass!');return;}grass-=u.c;upg.add(u.id);if(u.e==='t2')tap*=2;if(u.e==='t5')tap*=5;if(u.e==='t10')tap*=10;if(u.e==='p2')prod*=2;if(u.e==='p3')prod*=3;if(u.e==='p5')prod*=5;toast(u.n+' active!');upd();}
 function qprog(q){if(q.t==='total')return Math.min(total,q.tg);if(q.t==='clicks')return Math.min(clicks,q.tg);if(q.t==='animal')return Math.min(anim[q.an]?anim[q.an].cnt:0,q.tg);if(q.t==='variety')return Math.min(AN.filter(function(a){return anim[a.id].cnt>0;}).length,q.tg);return 0;}
 function updQ(){
