@@ -140,6 +140,7 @@ async function connectWallet() {
     signer = provider.getSigner();
     walletAddr = await signer.getAddress();
     contract = new ethers.Contract(CA, ABI, signer);
+    console.log('Contract initialized:', CA);
     document.getElementById('wbtn').textContent = 'Connected';
     document.getElementById('wbtn').classList.add('ok');
     document.getElementById('waddr').textContent = walletAddr.slice(0,6) + '...' + walletAddr.slice(-4);
@@ -378,7 +379,7 @@ setInterval(function(){
 
 function saveGame() {
   var state = {
-    grass: grass, total: total, clicks: clicks,
+    grass: grass, total: total, allTime: allTime, clicks: clicks,
     tap: tap, prod: prod, pc: pc, pm: pm,
     anim: anim, upg: Array.from(upg), qc: Array.from(qc),
     streak: streak, dc: dc, plog: plog
@@ -393,6 +394,7 @@ function loadGame() {
     var s = JSON.parse(raw);
     grass = s.grass || 0;
     total = s.total || 0;
+    allTime = Math.max(allTime, s.allTime || s.total || 0);
     clicks = s.clicks || 0;
     tap = s.tap || 1;
     prod = s.prod || 1;
