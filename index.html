@@ -94,7 +94,9 @@ async function cloudLoad(wallet) {
   var res = await sb.from('game_saves').select('*').eq('wallet', wallet.toLowerCase()).single();
   if (res.error || !res.data) { toast('No cloud save found.'); return; }
   var s = res.data;
-  if (s.all_time_total) window._allTimeTotal = parseFloat(s.all_time_total);
+  if (s.all_time_total) window._allTimeTotal = Math.max(window._allTimeTotal||0, parseFloat(s.all_time_total));
+  // also compare with current total in case it's higher
+  window._allTimeTotal = Math.max(window._allTimeTotal||0, parseFloat(s.total)||0);
   grass = parseFloat(s.grass) || 0;
   total = parseFloat(s.total) || 0;
   clicks = parseInt(s.clicks) || 0;
@@ -116,6 +118,8 @@ async function cloudLoad(wallet) {
   toast('Cloud save loaded!');
 }
 
+var PRESTIGE_REQS=[100000,500000,1000000,5000000,10000000];
+function getPrestigeReq(){return PRESTIGE_REQS[Math.min(pc,PRESTIGE_REQS.length-1)];}
 var CA = '0x6905c9D9dBB238426d8a769955aB998fE7CD006d';
 var ABI = [
   'function submitScore(uint256 totalGrass, string calldata rank) external',
