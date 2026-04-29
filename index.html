@@ -194,6 +194,54 @@ var anim={};AN.forEach(function(a){anim[a.id]={cnt:0};});
 var upg=new Set(),qc=new Set(),streak=0,dc=false,plog=[];
 function fmt(n){return n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':Math.floor(n)+'';}
 function rate(){return AN.reduce(function(s,a){return s+a.b*(anim[a.id].cnt||0);},0)*prod*pm;}
+
+function updateMapPanel(animData, mapId, infoId) {
+  var g = document.getElementById(mapId);
+  if (!g) return;
+  g.innerHTML = '';
+  var defs = [
+    {id:'hen',e:'🐔',x:370,y:195},{id:'cow',e:'🐄',x:415,y:188},
+    {id:'sheep',e:'🐑',x:340,y:205},{id:'horse',e:'🐴',x:460,y:192},
+    {id:'camel',e:'🐪',x:500,y:198},{id:'elephant',e:'🐘',x:390,y:215},
+    {id:'unicorn',e:'🦄',x:440,y:215},{id:'dragon',e:'🐲',x:535,y:210},
+  ];
+  var info = document.getElementById(infoId);
+  if (info) info.innerHTML = '';
+  var totalAnimals = 0;
+  defs.forEach(function(d) {
+    var cnt = animData[d.id] ? animData[d.id].cnt : 0;
+    totalAnimals += cnt;
+    var show = Math.min(cnt, 4);
+    for (var i = 0; i < show; i++) {
+      var t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', d.x + (i%2)*22);
+      t.setAttribute('y', d.y + Math.floor(i/2)*20);
+      t.setAttribute('font-size', '18');
+      t.setAttribute('text-anchor', 'middle');
+      t.textContent = d.e;
+      g.appendChild(t);
+    }
+    if (cnt > 0 && info) {
+      var p = document.createElement('div');
+      p.style.cssText = 'background:var(--color-background-secondary,#f5f5f0);border:0.5px solid rgba(0,0,0,0.1);border-radius:999px;padding:3px 10px;font-size:11px;display:inline-flex;align-items:center;gap:4px;';
+      p.innerHTML = d.e + '<span style="font-weight:500;">' + cnt + '</span>';
+      info.appendChild(p);
+    }
+  });
+  if (totalAnimals === 0 && info) {
+    info.innerHTML = '<span style="font-size:11px;color:#888;">No animals yet!</span>';
+  }
+}
+
+function updateMap() {
+  updateMapPanel(anim, 'map-animals', 'map-info');
+  updateMapPanel(anim, 'map-animals-r', 'map-info-r');
+  var rg = document.getElementById('rs-grass'); if(rg) rg.textContent = fmt(grass);
+  var rr = document.getElementById('rs-rate'); if(rr) rr.textContent = rate().toFixed(1);
+  var rt = document.getElementById('rs-total'); if(rt) rt.textContent = fmt(total);
+  var rp = document.getElementById('rs-pc'); if(rp) rp.textContent = pc;
+}
+
 function upd(){
   document.getElementById('sg').textContent=fmt(grass);
   document.getElementById('sr').textContent=rate().toFixed(1);
