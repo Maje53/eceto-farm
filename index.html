@@ -116,8 +116,7 @@ async function cloudLoad(wallet) {
   toast('Cloud save loaded!');
 }
 
-var PRESTIGE_REQS=[100000,500000,1000000,5000000,10000000];
-function getPrestigeReq(){return PRESTIGE_REQS[Math.min(pc,PRESTIGE_REQS.length-1)];}
+function getPrestigeReq(){var reqs=[100000,500000,1000000,5000000,10000000];if(pc<reqs.length)return reqs[pc];return reqs[reqs.length-1]*Math.pow(5,pc-reqs.length+1);}
 var CA = '0x6905c9D9dBB238426d8a769955aB998fE7CD006d';
 var ABI = [
   'function submitScore(uint256 totalGrass, string calldata rank) external',
@@ -213,38 +212,30 @@ function updRank(){
 }
 function rendA(){
   var g=document.getElementById('agrid');
+  if(!g)return;
+  g.innerHTML='';
   AN.forEach(function(a){
     var cnt=anim[a.id].cnt,cost=Math.floor(a.c*Math.pow(1.15,cnt));
     var locked=Math.floor(grass)<cost;
-    var id='abtn-'+a.id;
-    var b=document.getElementById(id);
-    if(!b){
-      b=document.createElement('div');
-      b.id=id;
-      b.className='abtn';
-      g.appendChild(b);
-    }
+    var b=document.createElement('div');
     b.className='abtn'+(locked?' lk':'');
-    b.dataset.aid=a.id;
-    b.dataset.cost=cost;
     b.innerHTML='<span class="aico">'+a.i+'</span><div class="acnt">'+cnt+'</div><div class="anm">'+a.n+'</div><div class="acs">'+fmt(cost)+'</div>';
+    (function(aa,cc){b.addEventListener('click',function(){buyA(aa,cc);});})(a,cost);
+    g.appendChild(b);
   });
 }
 function rendU(){
   var g=document.getElementById('ugrid');
+  if(!g)return;
+  g.innerHTML='';
   UG.forEach(function(u){
     var bought=upg.has(u.id);
-    var id='ubtn-'+u.id;
-    var b=document.getElementById(id);
-    if(!b){
-      b=document.createElement('button');
-      b.id=id;
-      b.className='ubtn';
-      g.appendChild(b);
-    }
+    var b=document.createElement('button');
+    b.className='ubtn';
     b.disabled=bought||Math.floor(grass)<u.c;
-    b.dataset.uid=u.id;
     b.innerHTML='<span class="uico">'+u.i+'</span><div><div class="unm">'+u.n+(bought?' v':'')+'</div><div class="udc">'+u.d+'</div><div class="ucs">'+(bought?'Purchased':fmt(u.c))+'</div></div>';
+    if(!bought)(function(uu){b.addEventListener('click',function(){buyU(uu);});})(u);
+    g.appendChild(b);
   });
 }
 function buyA(a,cost){
@@ -331,7 +322,7 @@ setInterval(function(){
   upd();
   if(_activeTab==='farm'){rendA();rendU();}
   else if(_activeTab==='quests'){updQ();}
-},500);
+},1000);
 setInterval(function(){
   saveGame();
   if(walletAddr && !window._prestiging) cloudSave(walletAddr);
@@ -370,21 +361,7 @@ function loadGame() {
 }
 
 loadGame();
-document.getElementById('agrid').addEventListener('click',function(e){
-  var btn=e.target.closest('.abtn');
-  if(!btn||btn.classList.contains('lk'))return;
-  var aid=btn.dataset.aid;
-  var cost=parseInt(btn.dataset.cost);
-  var a=AN.find(function(x){return x.id===aid;});
-  if(a)buyA(a,cost);
-});
-document.getElementById('ugrid').addEventListener('click',function(e){
-  var btn=e.target.closest('.ubtn');
-  if(!btn||btn.disabled)return;
-  var uid=btn.dataset.uid;
-  var u=UG.find(function(x){return x.id===uid;});
-  if(u&&!upg.has(u.id))buyU(u);
-});
+
 upd();rendA();rendU();rendDaily();
 
 </script></body></html>
