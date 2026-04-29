@@ -295,136 +295,28 @@ function updP(){
 }
 async function doPrestige(){
   if(total<10000)return;
-  // Save current score onchain before resetting
+  window._prestiging = true;
   if(walletAddr && contract) {
     try {
       toast('Saving score onchain before prestige...');
       var tx = await contract.submitScore(Math.floor(total), document.getElementById('rnm').textContent);
       await tx.wait();
-    } catch(e) { /* continue even if save fails */ }
+      toast('Onchain saved! Prestiging...');
+    } catch(e) { toast('Onchain save failed, prestiging anyway...'); }
   }
+  if(!window._allTimeTotal) window._allTimeTotal = 0;
+  window._allTimeTotal = Math.max(window._allTimeTotal, Math.floor(total));
   pc++;pm=pc+1;
   plog.unshift('Prestige #'+pc+' x'+pm+' multiplier');
   grass=0;total=0;clicks=0;tap=1;prod=1;
   AN.forEach(function(a){anim[a.id]={cnt:0};});
   upg.clear();qc.clear();dc=false;streak=0;
   toast('Prestige '+pc+'! x'+pm);
-  document.getElementById('agrid').addEventListener('click',function(e){
-  var btn=e.target.closest('.abtn');
-  if(!btn||btn.classList.contains('lk'))return;
-  var aid=btn.dataset.aid;
-  var cost=parseInt(btn.dataset.cost);
-  var a=AN.find(function(x){return x.id===aid;});
-  if(a)buyA(a,cost);
-});
-document.getElementById('ugrid').addEventListener('click',function(e){
-  var btn=e.target.closest('.ubtn');
-  if(!btn||btn.disabled)return;
-  var uid=btn.dataset.uid;
-  var u=UG.find(function(x){return x.id===uid;});
-  if(u&&!upg.has(u.id))buyU(u);
-});
-upd();rendA();rendU();rendDaily();saveGame();
-  if(walletAddr)cloudSave(walletAddr);
-}
-function saveGame() {
-  var state = {
-    grass: grass, total: total, clicks: clicks,
-    tap: tap, prod: prod, pc: pc, pm: pm,
-    anim: anim, upg: Array.from(upg), qc: Array.from(qc),
-    streak: streak, dc: dc, plog: plog
-  };
-  localStorage.setItem('eceto_farm', JSON.stringify(state));
+  upd();rendA();rendU();rendDaily();saveGame();
+  if(walletAddr) await cloudSave(walletAddr);
+  window._prestiging = false;
 }
 
-function loadGame() {
-  try {
-    var raw = localStorage.getItem('eceto_farm');
-    if (!raw) return;
-    var s = JSON.parse(raw);
-    grass = s.grass || 0;
-    total = s.total || 0;
-    clicks = s.clicks || 0;
-    tap = s.tap || 1;
-    prod = s.prod || 1;
-    pc = s.pc || 0;
-    pm = s.pm || 1;
-    if (s.anim) anim = s.anim;
-    if (s.upg) s.upg.forEach(function(u){ upg.add(u); });
-    if (s.qc) s.qc.forEach(function(q){ qc.add(q); });
-    streak = s.streak || 0;
-    dc = s.dc || false;
-    plog = s.plog || [];
-    toast('Game loaded!');
-  } catch(e) {}
-}
-
-loadGame();
-document.getElementById('agrid').addEventListener('click',function(e){
-  var btn=e.target.closest('.abtn');
-  if(!btn||btn.classList.contains('lk'))return;
-  var aid=btn.dataset.aid;
-  var cost=parseInt(btn.dataset.cost);
-  var a=AN.find(function(x){return x.id===aid;});
-  if(a)buyA(a,cost);
-});
-document.getElementById('ugrid').addEventListener('click',function(e){
-  var btn=e.target.closest('.ubtn');
-  if(!btn||btn.disabled)return;
-  var uid=btn.dataset.uid;
-  var u=UG.find(function(x){return x.id===uid;});
-  if(u&&!upg.has(u.id))buyU(u);
-});
-upd();rendA();rendU();rendDaily();
-setInterval(function(){
-  saveGame();
-  if (walletAddr) cloudSave(walletAddr);
-}, 30000);
-function updateMapPanel(animalId, mapId, infoId) {
-  var g = document.getElementById(mapId);
-  if (!g) return;
-  g.innerHTML = '';
-  var defs = [
-    {id:'hen',e:'🐔',x:370,y:195},{id:'cow',e:'🐄',x:415,y:188},
-    {id:'sheep',e:'🐑',x:340,y:205},{id:'horse',e:'🐴',x:460,y:192},
-    {id:'camel',e:'🐪',x:500,y:198},{id:'elephant',e:'🐘',x:390,y:215},
-    {id:'unicorn',e:'🦄',x:440,y:215},{id:'dragon',e:'🐲',x:535,y:210},
-  ];
-  var info = document.getElementById(infoId);
-  if (info) info.innerHTML = '';
-  var total = 0;
-  defs.forEach(function(d) {
-    var cnt = anim[d.id] ? anim[d.id].cnt : 0;
-    total += cnt;
-    var show = Math.min(cnt, 4);
-    for (var i = 0; i < show; i++) {
-      var t = document.createElementNS('http://www.w3.org/2000/svg','text');
-      t.setAttribute('x', d.x + (i%2)*22);
-      t.setAttribute('y', d.y + Math.floor(i/2)*20);
-      t.setAttribute('font-size', '18');
-      t.setAttribute('text-anchor', 'middle');
-      t.textContent = d.e;
-      g.appendChild(t);
-    }
-    if (cnt > 0 && info) {
-      var p = document.createElement('div');
-      p.style.cssText = 'background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:999px;padding:3px 10px;font-size:11px;color:var(--color-text-secondary);display:inline-flex;align-items:center;gap:4px;';
-      p.innerHTML = d.e + '<span style="font-weight:500;color:var(--color-text-primary);">' + cnt + '</span>';
-      info.appendChild(p);
-    }
-  });
-  if (total === 0 && info) {
-    info.innerHTML = '<span style="font-size:11px;color:var(--color-text-secondary);">No animals yet!</span>';
-  }
-}
-function updateMap(){
-  updateMapPanel(anim,'map-animals','map-info');
-  updateMapPanel(anim,'map-animals-r','map-info-r');
-  var rg=document.getElementById('rs-grass');if(rg)rg.textContent=fmt(grass);
-  var rr=document.getElementById('rs-rate');if(rr)rr.textContent=rate().toFixed(1);
-  var rt=document.getElementById('rs-total');if(rt)rt.textContent=fmt(total);
-  var rp=document.getElementById('rs-pc');if(rp)rp.textContent=pc;
-}
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.style.opacity=1;clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity=0;},2500);}
 var _activeTab='farm';
 function sw(name,el){document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});document.getElementById('p-'+name).classList.add('on');el.classList.add('on');_activeTab=name;if(name==='daily')rendDaily();if(name==='quests')updQ();if(name==='board')loadBoard();}
@@ -439,6 +331,10 @@ setInterval(function(){
   if(_activeTab==='farm'){rendA();rendU();}
   else if(_activeTab==='quests'){updQ();}
 },500);
+setInterval(function(){
+  saveGame();
+  if(walletAddr && !window._prestiging) cloudSave(walletAddr);
+},30000);
 
 function saveGame() {
   var state = {
@@ -489,8 +385,5 @@ document.getElementById('ugrid').addEventListener('click',function(e){
   if(u&&!upg.has(u.id))buyU(u);
 });
 upd();rendA();rendU();rendDaily();
-setInterval(function(){
-  saveGame();
-  if (walletAddr) cloudSave(walletAddr);
-}, 30000);
+
 </script></body></html>
