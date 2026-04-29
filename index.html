@@ -193,7 +193,6 @@ var anim={};AN.forEach(function(a){anim[a.id]={cnt:0};});
 var upg=new Set(),qc=new Set(),streak=0,dc=false,plog=[];
 function fmt(n){return n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':Math.floor(n)+'';}
 function rate(){return AN.reduce(function(s,a){return s+a.b*(anim[a.id].cnt||0);},0)*prod*pm;}
-var _lastGrass = -1;
 function upd(){
   document.getElementById('sg').textContent=fmt(grass);
   document.getElementById('sr').textContent=rate().toFixed(1);
@@ -201,14 +200,7 @@ function upd(){
   document.getElementById('sm').textContent='x'+pm;
   document.getElementById('cpw').textContent='Tap power: x'+(tap*pm);
   document.getElementById('ppill').textContent='x'+pm;
-  updRank();
-  // Only re-render animals/upgrades when grass changes significantly
-  var grassFloor = Math.floor(grass);
-  if (Math.abs(grassFloor - _lastGrass) > 1 || _lastGrass < 0) {
-    _lastGrass = grassFloor;
-    rendA();rendU();
-  }
-  updQ();updP();updateMap();
+  updRank();updP();updateMap();
 }
 function updRank(){
   var cur=RK[0],nxt=null;
@@ -370,12 +362,19 @@ function updateMap(){
   var rp=document.getElementById('rs-pc');if(rp)rp.textContent=pc;
 }
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.style.opacity=1;clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity=0;},2500);}
-function sw(name,el){document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});document.getElementById('p-'+name).classList.add('on');el.classList.add('on');if(name==='daily')rendDaily();if(name==='quests')updQ();if(name==='board')loadBoard();}
+var _activeTab='farm';
+function sw(name,el){document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});document.getElementById('p-'+name).classList.add('on');el.classList.add('on');_activeTab=name;if(name==='daily')rendDaily();if(name==='quests')updQ();if(name==='board')loadBoard();}
 document.getElementById('eceto').addEventListener('click',function(){
   var g=Math.max(1,Math.floor(tap*pm));grass+=g;total+=g;clicks++;upd();
   var z=document.getElementById('czone');var f=document.createElement('div');f.className='float';f.textContent='+'+g;f.style.left=(Math.random()*60+20)+'%';f.style.top='10px';z.appendChild(f);setTimeout(function(){f.remove();},900);
 });
-setInterval(function(){var r=rate();if(r>0){grass+=r*.1;total+=r*.1;upd();}},100);
+setInterval(function(){
+  var r=rate();
+  if(r>0){grass+=r*.1;total+=r*.1;}
+  upd();
+  if(_activeTab==='farm'){rendA();rendU();}
+  else if(_activeTab==='quests'){updQ();}
+},500);
 
 function saveGame() {
   var state = {
