@@ -144,14 +144,26 @@ async function initNFTContract() {
 }
 
 async function mintAchievement(tokenId) {
-  if(!nftContract) { toast('Connect wallet first!'); return; }
+  if(!walletAddr) { toast('Connect wallet first!'); return; }
   if(mintedNFTs.has(tokenId)) { toast('Already minted!'); return; }
+  // Re-init contract if needed
+  if(!nftContract && signer) {
+    nftContract = new ethers.Contract(NFT_CA, NFT_ABI, signer);
+  }
+  if(!nftContract) {
+    // Try to get signer from provider
+    try {
+      var p = new ethers.providers.Web3Provider(window.ethereum);
+      var s = p.getSigner();
+      nftContract = new ethers.Contract(NFT_CA, NFT_ABI, s);
+    } catch(e) { toast('Connect wallet first!'); return; }
+  }
   try {
     toast('Minting NFT...');
     var tx = await nftContract.mint(tokenId);
     await tx.wait();
     mintedNFTs.add(tokenId);
-    toast('🎉 NFT minted successfully!');
+    toast('NFT minted successfully!');
     renderAchievements();
   } catch(e) { toast('Mint failed: ' + (e.reason || e.message)); }
 }
