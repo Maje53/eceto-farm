@@ -521,7 +521,18 @@ async function doPrestige(){
 
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.style.opacity=1;clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity=0;},2500);}
 var _activeTab='farm';
-function sw(name,el){document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});document.getElementById('p-'+name).classList.add('on');el.classList.add('on');_activeTab=name;if(name==='daily')rendDaily();if(name==='quests')updQ();if(name==='board')loadBoard();}
+function sw(name,el){
+  document.querySelectorAll('.panel').forEach(function(p){if(p)p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){if(t)t.classList.remove('on');});
+  var panel=document.getElementById('p-'+name);
+  if(panel)panel.classList.add('on');
+  if(el)el.classList.add('on');
+  _activeTab=name;
+  if(name==='daily')rendDaily();
+  if(name==='quests')updQ();
+  if(name==='board')loadBoard();
+  if(name==='achievements')renderAchievements();
+}
 document.getElementById('eceto').addEventListener('click',function(){
   var g=Math.max(1,Math.floor(tap*pm));grass+=g;total+=g;allTime+=g;clicks++;totalClicks++;upd();
   var z=document.getElementById('czone');var f=document.createElement('div');f.className='float';f.textContent='+'+g;f.style.left=(Math.random()*60+20)+'%';f.style.top='10px';z.appendChild(f);setTimeout(function(){f.remove();},900);
