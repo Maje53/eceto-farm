@@ -58,7 +58,7 @@
     <div class="slbl" style="font-size:10px;font-weight:600;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">Live Stats</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
       <div class="stat"><div class="sv" id="rs-grass">0</div><div class="sl">Grass</div></div>
-      <div class="stat"><div class="sv" id="rs-rate">0</div><div class="sl">/sec</div></div>
+      <div class="stat"><div class="sv" id="rs-rate">0</div><div class="sl">⚡/sec</div></div>
       <div class="stat"><div class="sv" id="rs-total">0</div><div class="sl">Total</div></div>
       <div class="stat"><div class="sv" id="rs-pc">0</div><div class="sl">Prestiges</div></div>
     </div>
@@ -415,14 +415,14 @@ function updateMap() {
   updateMapPanel(anim, 'map-animals', 'map-info');
   updateMapPanel(anim, 'map-animals-r', 'map-info-r');
   var rg = document.getElementById('rs-grass'); if(rg) rg.textContent = fmt(grass);
-  var rr = document.getElementById('rs-rate'); if(rr) rr.textContent = rate().toFixed(1);
+  var rr = document.getElementById('rs-rate'); if(rr) rr.textContent = fmt(rate());
   var rt = document.getElementById('rs-total'); if(rt) rt.textContent = fmt(total);
   var rp = document.getElementById('rs-pc'); if(rp) rp.textContent = pc;
 }
 
 function upd(){
   document.getElementById('sg').textContent=fmt(grass);
-  document.getElementById('sr').textContent=rate().toFixed(1);
+  document.getElementById('sr').textContent=fmt(rate());
   document.getElementById('st').textContent=fmt(total);
   document.getElementById('sm').textContent='x'+pm;
   document.getElementById('cpw').textContent='Tap power: x'+(tap*pm);
