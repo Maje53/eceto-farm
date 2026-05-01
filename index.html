@@ -121,6 +121,37 @@ async function cloudLoad(wallet) {
 }
 
 function getPrestigeReq(){var reqs=[100000,500000,1000000,5000000,10000000];if(pc<reqs.length)return reqs[pc];return reqs[reqs.length-1]*Math.pow(5,pc-reqs.length+1);}
+var NFT_CA = '0x340582B654B66b2a9E73162340D6eD3C305e3D28';
+var NFT_ABI = [{"inputs":[{"internalType":"string","name":"baseURI_","type":"string"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"inputs":[{"internalType":"bool","name":"approved","type":"bool"}]}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"TransferSingle","type":"event"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"uint256","name":"id","type":"uint256"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"wallet","type":"address"}],"name":"getMintedAchievements","outputs":[{"internalType":"bool[]","name":"","type":"bool[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"hasMinted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"uri","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}];
+var nftContract = null;
+var mintedNFTs = new Set();
+
+async function initNFTContract() {
+  if(!signer) return;
+  nftContract = new ethers.Contract(NFT_CA, NFT_ABI, signer);
+  // Load already minted achievements
+  try {
+    var minted = await nftContract.getMintedAchievements(walletAddr);
+    minted.forEach(function(m, i) { if(m) mintedNFTs.add(i); });
+    if(document.getElementById('p-achievements') && document.getElementById('p-achievements').classList.contains('on')) {
+      renderAchievements();
+    }
+  } catch(e) { console.log('NFT load error:', e); }
+}
+
+async function mintAchievement(tokenId) {
+  if(!nftContract) { toast('Connect wallet first!'); return; }
+  if(mintedNFTs.has(tokenId)) { toast('Already minted!'); return; }
+  try {
+    toast('Minting NFT...');
+    var tx = await nftContract.mint(tokenId);
+    await tx.wait();
+    mintedNFTs.add(tokenId);
+    toast('🎉 NFT minted successfully!');
+    renderAchievements();
+  } catch(e) { toast('Mint failed: ' + (e.reason || e.message)); }
+}
+
 var CA = '0x6905c9D9dBB238426d8a769955aB998fE7CD006d';
 var ABI = [
   'function submitScore(uint256 totalGrass, string calldata rank) external',
@@ -152,6 +183,7 @@ async function connectWallet() {
     var cbtnel = document.getElementById('cbtn'); if(cbtnel) cbtnel.disabled = false;
     toast('Connected: ' + walletAddr.slice(0,6) + '...');
     setTimeout(function(){ cloudLoad(walletAddr); }, 500);
+    initNFTContract();
   } catch(e) { toast('Error: ' + e.message); }
 }
 
@@ -286,6 +318,15 @@ function renderAchievements() {
     var pct = Math.min(100, (prog/a.target)*100);
     var div = document.createElement('div');
     div.style.cssText = 'background:' + (done?'#f0fdf4':'#fff') + ';border:0.5px solid ' + (done?'rgba(0,150,0,0.2)':'rgba(0,0,0,0.1)') + ';border-radius:10px;padding:10px;margin-bottom:7px;display:flex;align-items:center;gap:10px;opacity:' + (done?'1':'0.6') + ';';
+    var mintBtn = '';
+    if(done) {
+      var alreadyMinted = mintedNFTs.has(ACHIEVEMENTS.indexOf(a));
+      if(alreadyMinted) {
+        mintBtn = '<div style="font-size:10px;color:#27AE60;font-weight:500;margin-top:4px;">✓ NFT Minted</div>';
+      } else if(walletAddr) {
+        mintBtn = '<button onclick="mintAchievement(' + ACHIEVEMENTS.indexOf(a) + ')" style="margin-top:6px;background:#0052FF;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">Mint NFT</button>';
+      }
+    }
     div.innerHTML = '<span style="font-size:22px;min-width:26px;text-align:center;">' + a.icon + (done?' ✓':'') + '</span>' +
       '<div style="flex:1;">' +
         '<div style="font-size:12px;font-weight:500;color:#1a1a1a;">' + a.name + '</div>' +
@@ -294,6 +335,7 @@ function renderAchievements() {
           '<div style="height:100%;background:#8BC34A;border-radius:999px;width:' + pct + '%;transition:width .3s;"></div>' +
         '</div>' +
         '<div style="font-size:10px;color:#aaa;margin-top:2px;">' + fmt(Math.min(prog,a.target)) + ' / ' + fmt(a.target) + '</div>' +
+        mintBtn +
       '</div>';
     el.appendChild(div);
   });
