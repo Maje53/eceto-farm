@@ -248,6 +248,7 @@ var RK=[{n:'Rookie Farmer',at:0},{n:'Village Farmer',at:100},{n:'Expert Farmer',
 var QS=[{id:'q1',i:'🌿',n:'First Harvest',d:'Collect 100 grass',t:'total',tg:100,r:50},{id:'q2',i:'🐔',n:'Farmer Trainee',d:'Buy your first hen',t:'animal',an:'hen',tg:1,r:30},{id:'q3',i:'🌾',n:'Grass Ocean',d:'Collect 1,000 grass',t:'total',tg:1000,r:300},{id:'q4',i:'🐄',n:'Milk Master',d:'Buy 3 cows',t:'animal',an:'cow',tg:3,r:500},{id:'q5',i:'⚡',n:'Fast Hands',d:'Tap 500 times',t:'clicks',tg:500,r:200},{id:'q6',i:'🏆',n:'Big Farm',d:'Own 5 different animal types',t:'variety',tg:5,r:2000},{id:'q7',i:'💰',n:'Golden Farmer',d:'Collect 10,000 grass',t:'total',tg:10000,r:5000},{id:'q8',i:'🦄',n:'Legend',d:'Buy a unicorn',t:'animal',an:'unicorn',tg:1,r:50000}];
 var SB=[{d:1,r:50,l:'Day 1'},{d:2,r:100,l:'Day 2'},{d:3,r:200,l:'Day 3'},{d:5,r:500,l:'Day 5'},{d:7,r:1500,l:'Day 7'}];
 var grass=0,total=0,allTime=0,clicks=0,totalClicks=0,totalDragons=0,totalUnicorns=0,tap=1,prod=1,pc=0,pm=1;
+var lastClaimDate='';
 var anim={};AN.forEach(function(a){anim[a.id]={cnt:0};});
 var upg=new Set(),qc=new Set(),streak=0,dc=false,plog=[];
 function fmt(n){return n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':Math.floor(n)+'';}
@@ -506,7 +507,7 @@ function rendDaily(){
   var sb=document.getElementById('sbonuses');sb.innerHTML='';
   SB.forEach(function(b){var el=document.createElement('div');el.className='srow';el.innerHTML='<span style="color:#888">'+b.l+'</span><span style="font-weight:500;color:'+(streak>=b.d?'#3B6D11':'#aaa')+';">'+(streak>=b.d?'v ':'+')+fmt(b.r)+'</span>';sb.appendChild(el);});
 }
-function claimDaily(){if(dc)return;streak=Math.min(streak+1,7);var rw=50;for(var b=0;b<SB.length;b++){if(SB[b].d===streak){rw=SB[b].r;break;}}grass+=rw;total+=rw;allTime+=rw;dc=true;toast('+'+fmt(rw)+' grass!');rendDaily();upd();}
+function claimDaily(){if(dc)return;streak=Math.min(streak+1,7);var rw=50;for(var b=0;b<SB.length;b++){if(SB[b].d===streak){rw=SB[b].r;break;}}grass+=rw;total+=rw;allTime+=rw;dc=true;lastClaimDate=new Date().toDateString();toast('+'+fmt(rw)+' grass!');rendDaily();upd();saveGame();}
 function updP(){
   var can=total>=getPrestigeReq();document.getElementById('pbtn').disabled=!can;
   document.getElementById('pst2').textContent=can?'Ready to prestige!':'Need '+fmt(getPrestigeReq()-total)+' more grass to prestige #'+(pc+1)+'.';
@@ -570,7 +571,7 @@ setInterval(function(){
 
 function saveGame() {
   var state = {
-    grass: grass, total: total, allTime: allTime, clicks: clicks, totalClicks: totalClicks, totalDragons: totalDragons, totalUnicorns: totalUnicorns,
+    grass: grass, total: total, allTime: allTime, clicks: clicks, totalClicks: totalClicks, totalDragons: totalDragons, totalUnicorns: totalUnicorns, lastClaimDate: lastClaimDate, streak: streak,
     tap: tap, prod: prod, pc: pc, pm: pm,
     anim: anim, upg: Array.from(upg), qc: Array.from(qc),
     streak: streak, dc: dc, plog: plog
@@ -591,6 +592,22 @@ function loadGame() {
     totalClicks = s.totalClicks || 0;
     totalDragons = s.totalDragons || 0;
     totalUnicorns = s.totalUnicorns || 0;
+    lastClaimDate = s.lastClaimDate || '';
+    streak = s.streak || 0;
+    // Check if new day - reset dc
+    var today = new Date().toDateString();
+    if(lastClaimDate === today) {
+      dc = true; // already claimed today
+    } else if(lastClaimDate) {
+      // Check if yesterday - streak continues, else reset
+      var yesterday = new Date(Date.now() - 86400000).toDateString();
+      if(lastClaimDate !== yesterday) {
+        streak = 0; // missed a day, reset streak
+      }
+      dc = false; // new day, can claim
+    } else {
+      dc = false;
+    }
     tap = s.tap || 1;
     prod = s.prod || 1;
     pc = s.pc || 0;
