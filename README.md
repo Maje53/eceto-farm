@@ -61,7 +61,7 @@ README.md              — This file
 
 ## 🌐 Live Demo
 
-[Play Eceto's Farm →](https://lucent-sprinkles-08b866.netlify.app)
+[Play Eceto's Farm →](https://eceto-farm.vercel.app)
 
 ---
 
