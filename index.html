@@ -492,10 +492,10 @@ function copyReferralLink() {
 
 // ===== SEASONAL EVENT SYSTEM =====
 var SEASON_ANIMALS = [
-  {id:'butterfly', icon:'🦋', name:'Butterfly', base:500,  cost:2000000,  week:0},
-  {id:'dolphin',   icon:'🐬', name:'Dolphin',   base:800,  cost:5000000,  week:1},
-  {id:'lion',      icon:'🦁', name:'Lion',       base:1200, cost:10000000, week:2},
-  {id:'phoenix',   icon:'🐉', name:'Phoenix',    base:2000, cost:25000000, week:3},
+  {id:'butterfly', icon:'🦋', name:'Butterfly', base:100,  cost:2000000,  week:0},
+  {id:'dolphin',   icon:'🐬', name:'Dolphin',   base:200,  cost:5000000,  week:1},
+  {id:'lion',      icon:'🦁', name:'Lion',       base:400, cost:10000000, week:2},
+  {id:'phoenix',   icon:'🐉', name:'Phoenix',    base:800, cost:25000000, week:3},
 ];
 
 function getCurrentSeasonAnimal() {
@@ -547,7 +547,8 @@ function initSeasonPanel() {
   
   var desc = document.createElement('div');
   desc.style.cssText = 'font-size:12px;color:#9FA8DA;margin-bottom:12px;';
-  desc.textContent = 'Seasonal exclusive • ' + fmt(sa.base) + '/sec each' + (cnt > 0 ? ' • Owned: ' + cnt : '');
+  var totalSec = cnt * sa.base;
+  desc.textContent = 'Seasonal exclusive • ' + fmt(sa.base) + '/sec each' + (cnt > 0 ? ' • Total: ' + fmt(totalSec) + '/sec (base)' : '');
   
   var owned = document.createElement('div');
   owned.style.cssText = 'font-size:13px;color:#C5CAE9;margin-bottom:12px;';
