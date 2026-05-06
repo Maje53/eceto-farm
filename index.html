@@ -545,7 +545,8 @@ function initSeasonPanel() {
   
   var desc = document.createElement('div');
   desc.style.cssText = 'font-size:12px;color:#9FA8DA;margin-bottom:12px;';
-  desc.textContent = 'Seasonal exclusive • ' + fmt(sa.base) + '/sec each';
+  var totalSec = cnt * sa.base * prod * pm;
+  desc.textContent = 'Seasonal exclusive • ' + fmt(sa.base) + '/sec each' + (cnt > 0 ? ' • Total: ' + fmt(totalSec) + '/sec' : '');
   
   var owned = document.createElement('div');
   owned.style.cssText = 'font-size:13px;color:#C5CAE9;margin-bottom:12px;';
