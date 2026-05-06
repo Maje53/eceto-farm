@@ -275,7 +275,7 @@ var lastClaimDate='';
 var anim={};AN.forEach(function(a){anim[a.id]={cnt:0};});
 var upg=new Set(),qc=new Set(),streak=0,dc=false,plog=[];
 function fmt(n){return n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':Math.floor(n)+'';}
-function rate(){return AN.reduce(function(s,a){return s+a.b*(anim[a.id].cnt||0);},0)*prod*pm + getSeasonRate();}
+function rate(){return (AN.reduce(function(s,a){return s+a.b*(anim[a.id].cnt||0);},0) + SEASON_ANIMALS.reduce(function(s,sa){return s+sa.base*(seasonAnim[sa.id]?seasonAnim[sa.id].cnt||0:0);},0))*prod*pm;}
 
 var ACHIEVEMENTS = [
   // Clicks - 3 levels
@@ -500,7 +500,8 @@ var SEASON_ANIMALS = [
 
 function getCurrentSeasonAnimal() {
   // Week number since a fixed start date (May 1, 2026)
-  var start = new Date('2026-05-01T00:00:00Z');
+  // Start from the Monday of the week the game launched (May 5, 2026)
+  var start = new Date('2026-05-05T00:00:00Z');
   var now = new Date();
   var weekNum = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
   var idx = weekNum % SEASON_ANIMALS.length;
@@ -508,7 +509,8 @@ function getCurrentSeasonAnimal() {
 }
 
 function getSeasonTimeLeft() {
-  var start = new Date('2026-05-01T00:00:00Z');
+  // Start from the Monday of the week the game launched (May 5, 2026)
+  var start = new Date('2026-05-05T00:00:00Z');
   var now = new Date();
   var ms = 7 * 24 * 60 * 60 * 1000;
   var elapsed = (now - start) % ms;
@@ -545,8 +547,7 @@ function initSeasonPanel() {
   
   var desc = document.createElement('div');
   desc.style.cssText = 'font-size:12px;color:#9FA8DA;margin-bottom:12px;';
-  var totalSec = cnt * sa.base * prod * pm;
-  desc.textContent = 'Seasonal exclusive • ' + fmt(sa.base) + '/sec each' + (cnt > 0 ? ' • Total: ' + fmt(totalSec) + '/sec' : '');
+  desc.textContent = 'Seasonal exclusive • ' + fmt(sa.base) + '/sec each' + (cnt > 0 ? ' • Owned: ' + cnt : '');
   
   var owned = document.createElement('div');
   owned.style.cssText = 'font-size:13px;color:#C5CAE9;margin-bottom:12px;';
