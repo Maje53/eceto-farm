@@ -594,19 +594,21 @@ function loadGame() {
     totalUnicorns = s.totalUnicorns || 0;
     lastClaimDate = s.lastClaimDate || '';
     streak = s.streak || 0;
-    // Check if new day - reset dc
+    // Check if new day
     var today = new Date().toDateString();
     if(lastClaimDate === today) {
       dc = true; // already claimed today
-    } else if(lastClaimDate) {
-      // Check if yesterday - streak continues, else reset
-      var yesterday = new Date(Date.now() - 86400000).toDateString();
-      if(lastClaimDate !== yesterday) {
-        streak = 0; // missed a day, reset streak
-      }
-      dc = false; // new day, can claim
     } else {
+      // New day - can claim
       dc = false;
+      // If more than 1 day has passed, reset streak
+      if(lastClaimDate) {
+        var lastDate = new Date(lastClaimDate);
+        var diffDays = Math.floor((new Date() - lastDate) / 86400000);
+        if(diffDays > 1) {
+          streak = 0; // missed a day
+        }
+      }
     }
     tap = s.tap || 1;
     prod = s.prod || 1;
