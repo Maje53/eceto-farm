@@ -148,6 +148,7 @@ async function cloudLoad(wallet) {
 }
 
 function getPrestigeReq(){var reqs=[100000,500000,1000000,5000000,10000000];if(pc<reqs.length)return reqs[pc];return reqs[reqs.length-1]*Math.pow(5,pc-reqs.length+1);}
+var BUILDER_SUFFIX = '0x62635f6330646b71346b6b0b0080218021802180218021802180218021';
 var NFT_CA = '0x340582B654B66b2a9E73162340D6eD3C305e3D28';
 var NFT_ABI = [
   {"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},
@@ -188,7 +189,7 @@ async function mintAchievement(tokenId) {
   }
   try {
     toast('Minting NFT...');
-    var tx = await nftContract.mint(tokenId);
+    var tx = await nftContract.mint(tokenId, {data: BUILDER_SUFFIX});
     await tx.wait();
     mintedNFTs.add(tokenId);
     toast('NFT minted successfully!');
@@ -742,7 +743,7 @@ async function doPrestige(){
   if(walletAddr && contract) {
     try {
       toast('Saving score onchain before prestige...');
-      var tx = await contract.submitScore(Math.floor(total), document.getElementById('rnm').textContent);
+      var tx = await contract.submitScore(Math.floor(total), document.getElementById('rnm').textContent, {data: BUILDER_SUFFIX});
       await tx.wait();
       toast('Onchain saved! Prestiging...');
     } catch(e) { toast('Onchain save failed, prestiging anyway...'); }
