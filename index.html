@@ -527,17 +527,45 @@ function initSeasonPanel() {
   var cost = Math.floor(sa.cost * Math.pow(1.25, cnt));
   var el = document.getElementById('season-panel');
   if(!el) return;
-  el.innerHTML =
-    '<div style="background:linear-gradient(135deg,#1A237E,#283593);border-radius:14px;padding:16px;text-align:center;margin-bottom:10px;">' +
-      '<div style="font-size:11px;color:#9FA8DA;margin-bottom:4px;">LIMITED TIME — ' + getSeasonTimeLeft() + ' left</div>' +
-      '<div style="font-size:40px;margin-bottom:6px;">' + sa.icon + '</div>' +
-      '<div style="font-size:16px;font-weight:600;color:#FFD700;margin-bottom:4px;">' + sa.name + '</div>' +
-      '<div style="font-size:12px;color:#9FA8DA;margin-bottom:12px;">Seasonal exclusive • ' + fmt(sa.base) + '/sec each</div>' +
-      '<div style="font-size:13px;color:#C5CAE9;margin-bottom:12px;">Owned: <strong style="color:#FFD700;">' + cnt + '</strong></div>' +
-      '<button onclick="buySeasonAnimal()" style="background:#FFD700;color:#1A237E;border:none;border-radius:10px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;">Buy for ' + fmt(cost) + ' grass</button>' +
-    '</div>';
+  
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'background:linear-gradient(135deg,#1A237E,#283593);border-radius:14px;padding:16px;text-align:center;margin-bottom:10px;';
+  
+  var timer = document.createElement('div');
+  timer.style.cssText = 'font-size:11px;color:#9FA8DA;margin-bottom:4px;';
+  timer.textContent = 'LIMITED TIME — ' + getSeasonTimeLeft() + ' left';
+  
+  var icon = document.createElement('div');
+  icon.style.cssText = 'font-size:40px;margin-bottom:6px;';
+  icon.textContent = sa.icon;
+  
+  var name = document.createElement('div');
+  name.style.cssText = 'font-size:16px;font-weight:600;color:#FFD700;margin-bottom:4px;';
+  name.textContent = sa.name;
+  
+  var desc = document.createElement('div');
+  desc.style.cssText = 'font-size:12px;color:#9FA8DA;margin-bottom:12px;';
+  desc.textContent = 'Seasonal exclusive • ' + fmt(sa.base) + '/sec each';
+  
+  var owned = document.createElement('div');
+  owned.style.cssText = 'font-size:13px;color:#C5CAE9;margin-bottom:12px;';
+  owned.innerHTML = 'Owned: <strong style="color:#FFD700;">' + cnt + '</strong>';
+  
+  var btn = document.createElement('button');
+  btn.style.cssText = 'background:#FFD700;color:#1A237E;border:none;border-radius:10px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;';
+  btn.textContent = 'Buy for ' + fmt(cost) + ' grass';
+  btn.onclick = buySeasonAnimal;
+  
+  wrap.appendChild(timer);
+  wrap.appendChild(icon);
+  wrap.appendChild(name);
+  wrap.appendChild(desc);
+  wrap.appendChild(owned);
+  wrap.appendChild(btn);
+  
+  el.innerHTML = '';
+  el.appendChild(wrap);
 }
-
 function buySeasonAnimal() {
   var sa = getCurrentSeasonAnimal();
   var cnt = seasonAnim[sa.id] ? (seasonAnim[sa.id].cnt || 0) : 0;
