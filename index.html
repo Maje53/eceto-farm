@@ -192,7 +192,7 @@ async function mintAchievement(tokenId) {
   }
   try {
     toast('Minting NFT...');
-    var tx = await nftContract.mint(tokenId, {data: BUILDER_SUFFIX});
+    var tx = await nftContract.mint(tokenId);
     await tx.wait();
     mintedNFTs.add(tokenId);
     toast('NFT minted successfully!');
@@ -746,7 +746,7 @@ async function doPrestige(){
   if(walletAddr && contract) {
     try {
       toast('Saving score onchain before prestige...');
-      var tx = await contract.submitScore(Math.floor(total), document.getElementById('rnm').textContent, {data: BUILDER_SUFFIX});
+      var tx = await contract.submitScore(Math.floor(total), document.getElementById('rnm').textContent);
       await tx.wait();
       toast('Onchain saved! Prestiging...');
     } catch(e) { toast('Onchain save failed, prestiging anyway...'); }
