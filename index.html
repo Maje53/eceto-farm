@@ -119,8 +119,11 @@ async function cloudSave(wallet) {
 
 async function cloudLoad(wallet) {
   if (!wallet) return;
+  // First load local save for this wallet
+  resetGameState();
+  loadGame(wallet);
   var res = await sb.from('game_saves').select('*').eq('wallet', wallet.toLowerCase()).single();
-  if (res.error || !res.data) { toast('No cloud save found.'); return; }
+  if (res.error || !res.data) { toast('New wallet - fresh start!'); upd();rendA();rendU();rendDaily(); return; }
   var s = res.data;
   allTime = Math.max(allTime, parseFloat(s.all_time_total)||0, parseFloat(s.allTime)||0);
   totalClicks = Math.max(totalClicks, parseInt(s.totalClicks)||0);
@@ -801,13 +804,21 @@ function saveGame() {
     anim: anim, upg: Array.from(upg), qc: Array.from(qc),
     streak: streak, dc: dc, plog: plog
   };
-  localStorage.setItem('eceto_farm', JSON.stringify(state));
-saveAchievements();
+  var key = walletAddr ? 'eceto_farm_' + walletAddr.toLowerCase() : 'eceto_farm_guest';
+  localStorage.setItem(key, JSON.stringify(state));
+  saveAchievements();
 }
 
-function loadGame() {
+function resetGameState() {
+  grass=0;total=0;allTime=0;clicks=0;totalClicks=0;totalDragons=0;totalUnicorns=0;
+  tap=1;prod=1;pc=0;pm=1;lastClaimDate='';streak=0;dc=false;plog=[];
+  AN.forEach(function(a){anim[a.id]={cnt:0};});
+  upg.clear();qc.clear();earnedAchievements.clear();seasonAnim={};
+}
+function loadGame(wallet) {
   try {
-    var raw = localStorage.getItem('eceto_farm');
+    var key = wallet ? 'eceto_farm_' + wallet.toLowerCase() : 'eceto_farm_guest';
+    var raw = localStorage.getItem(key) || localStorage.getItem('eceto_farm'); // fallback to old key
     if (!raw) return;
     var s = JSON.parse(raw);
     grass = s.grass || 0;
@@ -850,7 +861,7 @@ function loadGame() {
   } catch(e) {}
 }
 
-loadGame();
+loadGame(null);
 loadAchievements();
 
 upd();rendA();rendU();rendDaily();
