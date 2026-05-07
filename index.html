@@ -818,7 +818,7 @@ function resetGameState() {
 function loadGame(wallet) {
   try {
     var key = wallet ? 'eceto_farm_' + wallet.toLowerCase() : 'eceto_farm_guest';
-    var raw = localStorage.getItem(key) || localStorage.getItem('eceto_farm'); // fallback to old key
+    var raw = localStorage.getItem(key);
     if (!raw) return;
     var s = JSON.parse(raw);
     grass = s.grass || 0;
